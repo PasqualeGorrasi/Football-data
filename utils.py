@@ -236,4 +236,49 @@ def data_download():
     
     print ("Download completed")
 
+def isolate_event(country, label):
+    """
+    Crea dataset relativi ad un solo evento
+    label = goal/assist/keypass
+    """
 
+    match_id2match, match_id2events, player_id2player, competition_id2competition, team_id2team = load_public_dataset(data_folder=data_folder, tournament = country)
+    df = pd.read_json("data/events/events_{}.json".format(country))
+    matchlist = df['matchId'].unique()
+    label_list=[]
+    if label == 'goal':
+        event_tag = 101
+    elif label == 'assist':
+        event_tag = 301
+    elif label == 'keypass':
+        event_tag =302
+    else:
+        raise Exception("no tag for this event")
+
+    for i in matchlist:
+        match_events = match_id2events[i]
+        for x in match_id2events.items():
+            for event in match_events:
+                tags = event['tags']
+                for tag in tags:
+                    if tag['id'] == event_tag:
+                        label_list.append([event['eventId'], 
+                                event['subEventName'], 
+                                event['positions'],
+                                event['matchId'],
+                                event['eventName'],
+                                event['teamId'],
+                                event['matchPeriod'], 
+                                event['eventSec'],
+                                event['subEventId'], 
+                                event['id']
+                                ])
+    label_df= pd.DataFrame(label_list, columns=['eventId','subEventName','positions', 'matchId', 'eventName', 'teamId', 'matchPeriod', 'eventSec', 'subEventId', 'id'])
+    label_df['x_start'] = [x[0]['x'] for x in label_df['positions']]
+    label_df['y_start'] = [x[0]['y'] for x in label_df['positions']]
+    label_df= label_df.drop_duplicates(subset=['id', 'eventName'], keep='first')
+    label_df = label_df[label_df['x_start'] != 100]
+    label_df = label_df[label_df['x_start'] != 0]
+    label_df = label_df[label_df['subEventName'] != 'Penalty']
+    label_df = label_df[label_df['subEventName'] != 'Corner']
+    return label_df
