@@ -1031,7 +1031,7 @@ def pitch_graph_zone():
     code to plot a soccer pitch with six-by-three-grid
     """
     #create figure
-    fig,ax=plt.subplots(figsize=(7,5))
+    fig,ax=plt.subplots(figsize=(14,10))
     
     #Pitch Outline & Centre Line
     plt.plot([0,0],[0,100], color="black")
